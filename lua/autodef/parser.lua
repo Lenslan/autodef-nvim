@@ -198,31 +198,63 @@ local function parse_signal_line(line, line_num)
   local definitions = {}
 
   -- 端口定义: input/output/inout [wire/reg/logic] [width] name
-  local port_pattern = "^%s*(input|output|inout)%s+([%w_]*)%s*(%[.-%])?%s*([%w_]+)"
-  local dir, subtype, width, name = line:match(port_pattern)
-  if dir and name then
-    table.insert(definitions, {
-      name = name,
-      type = dir,
-      subtype = subtype ~= "" and subtype or nil,
-      width = width,
-      line = line_num,
-      category = "port",
-    })
-  end
-
-  -- 也尝试匹配简单的端口定义（无类型）
-  if not dir then
-    local simple_port = "^%s*(input|output|inout)%s+(%[.-%])?%s*([%w_]+)"
-    dir, width, name = line:match(simple_port)
-    if dir and name then
+  -- Lua模式不支持|，需要分别匹配
+  local port_types = { "input", "output", "inout" }
+  for _, port_type in ipairs(port_types) do
+    -- 匹配带子类型的端口: input wire [7:0] name 或 input logic name
+    local pattern1 = "^%s*" .. port_type .. "%s+([%w_]+)%s*(%[.-%])%s*([%w_]+)"
+    local subtype, width, name = line:match(pattern1)
+    if subtype and name and (subtype == "wire" or subtype == "reg" or subtype == "logic") then
       table.insert(definitions, {
         name = name,
-        type = dir,
+        type = port_type,
+        subtype = subtype,
         width = width,
         line = line_num,
         category = "port",
       })
+      break
+    end
+
+    -- 匹配带位宽但无子类型的端口: input [7:0] name
+    local pattern2 = "^%s*" .. port_type .. "%s+(%[.-%])%s*([%w_]+)"
+    width, name = line:match(pattern2)
+    if width and name then
+      table.insert(definitions, {
+        name = name,
+        type = port_type,
+        width = width,
+        line = line_num,
+        category = "port",
+      })
+      break
+    end
+
+    -- 匹配简单端口: input name 或 input wire name
+    local pattern3 = "^%s*" .. port_type .. "%s+([%w_]+)%s*([%w_]*)%s*,?"
+    local first, second = line:match(pattern3)
+    if first then
+      if first == "wire" or first == "reg" or first == "logic" then
+        -- input wire name 格式
+        if second and second ~= "" and M.is_valid_identifier(second) then
+          table.insert(definitions, {
+            name = second,
+            type = port_type,
+            subtype = first,
+            line = line_num,
+            category = "port",
+          })
+        end
+      elseif M.is_valid_identifier(first) then
+        -- input name 格式
+        table.insert(definitions, {
+          name = first,
+          type = port_type,
+          line = line_num,
+          category = "port",
+        })
+      end
+      break
     end
   end
 

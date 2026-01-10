@@ -37,26 +37,14 @@ function M.select_type(callback)
   local cfg = config.get()
   local types = cfg.signal_types or { "wire", "reg", "logic" }
 
-  -- 添加推荐标记到默认类型
-  local items = {}
-  for _, t in ipairs(types) do
-    if t == cfg.default_type then
-      table.insert(items, t .. " (Recommended)")
-    else
-      table.insert(items, t)
-    end
-  end
-
-  vim.ui.select(items, {
+  vim.ui.select(types, {
     prompt = "Select signal type:",
     format_item = function(item)
       return item
     end,
   }, function(choice)
     if choice then
-      -- 移除 " (Recommended)" 后缀
-      local selected = choice:gsub(" %(Recommended%)", "")
-      callback(selected)
+      callback(choice)
     end
   end)
 end
@@ -65,16 +53,21 @@ end
 ---@param callback function 回调函数，接收输入的位宽
 ---@param default string|nil 默认值
 function M.input_width(callback, default)
-  local cfg = config.get()
-  default = default or cfg.default_width or "1"
+  default = default or ""
 
   vim.ui.input({
-    prompt = "Enter bit width (e.g., 1, 8, [7:0], [WIDTH-1:0]): ",
+    prompt = "Enter bit width (e.g., 1, 8, [7:0], [WIDTH-1:0], empty for 1-bit): ",
     default = default,
   }, function(input)
-    if input then
-      callback(input)
+    -- 如果用户输入为nil（按ESC取消），不调用回调
+    if input == nil then
+      return
     end
+    -- 空输入或只有空白字符，默认为1位宽
+    if input == "" or input:match("^%s*$") then
+      input = "1"
+    end
+    callback(input)
   end)
 end
 
