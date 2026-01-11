@@ -7,7 +7,6 @@ local config = require("autodef.config")
 local parser = require("autodef.parser")
 local finder = require("autodef.finder")
 local inserter = require("autodef.inserter")
-local aligner = require("autodef.aligner")
 local ui = require("autodef.ui")
 
 --- 检查或添加单个信号定义
@@ -35,9 +34,6 @@ function M.check_or_add_signal()
     -- 信号已定义，显示位置
     local info = finder.format_definition_info(def)
     ui.info(string.format("Signal '%s' defined at line %d (%s)", word, def.line, info))
-
-    -- 可选：跳转到定义位置
-    -- vim.api.nvim_win_set_cursor(0, {def.line, 0})
   else
     -- 信号未定义，引导用户添加
     ui.info(string.format("Signal '%s' not found. Adding...", word))
@@ -153,40 +149,19 @@ function M._add_signals_individually(bufnr, signals, index, collected)
   end)
 end
 
---- 对齐所有信号定义
-function M.align_signals()
-  local bufnr = vim.api.nvim_get_current_buf()
-
-  -- 检查文件类型
-  if not parser.is_verilog_file(bufnr) then
-    ui.warn("Not a Verilog/SystemVerilog file")
-    return
-  end
-
-  local count = aligner.align_buffer(bufnr)
-
-  if count > 0 then
-    ui.info(string.format("Aligned %d signal definitions", count))
-  else
-    ui.info("No signal definitions to align")
-  end
-end
-
 --- 设置快捷键
 local function setup_keymaps()
   local cfg = config.get()
-  local keymaps = cfg.keymaps
+  local keymap = cfg.keymap
 
-  -- Normal模式：单信号查询/添加
-  if keymaps.single then
-    vim.keymap.set("n", keymaps.single, function()
+  if keymap then
+    -- Normal模式：单信号查询/添加
+    vim.keymap.set("n", keymap, function()
       M.check_or_add_signal()
     end, { desc = "AutoDef: Check/Add signal definition" })
-  end
 
-  -- Visual模式：批量添加
-  if keymaps.batch then
-    vim.keymap.set("v", keymaps.batch, function()
+    -- Visual模式：批量添加（使用相同快捷键）
+    vim.keymap.set("v", keymap, function()
       -- 先退出Visual模式以获取正确的选择范围（'< 和 '> 标记）
       local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
       vim.api.nvim_feedkeys(esc, "x", false)
@@ -194,13 +169,6 @@ local function setup_keymaps()
         M.batch_add_signals()
       end)
     end, { desc = "AutoDef: Batch add signal definitions" })
-  end
-
-  -- Normal模式：对齐
-  if keymaps.align then
-    vim.keymap.set("n", keymaps.align, function()
-      M.align_signals()
-    end, { desc = "AutoDef: Align signal definitions" })
   end
 end
 
@@ -220,11 +188,6 @@ local function setup_commands()
     end
     M.batch_add_signals()
   end, { range = true, desc = "Batch add signal definitions in range" })
-
-  -- 对齐命令
-  vim.api.nvim_create_user_command("AutoDefAlign", function()
-    M.align_signals()
-  end, { desc = "Align all signal definitions" })
 end
 
 --- 初始化插件
@@ -245,7 +208,6 @@ M.config = config
 M.parser = parser
 M.finder = finder
 M.inserter = inserter
-M.aligner = aligner
 M.ui = ui
 
 return M

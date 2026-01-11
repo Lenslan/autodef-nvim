@@ -17,29 +17,11 @@ function M.format_signal_line(signal_type, signal_name, width, cfg)
 
   local indent = cfg.indent or "  "
 
-  if cfg.align and cfg.align.enabled then
-    local type_width = cfg.align.type_width or 6
-    local bit_width = cfg.align.bit_width or 12
-
-    -- 类型列（左对齐）
-    local type_str = signal_type .. string.rep(" ", math.max(0, type_width - #signal_type))
-
-    -- 位宽列（左对齐）
-    local width_str
-    if width and width ~= "" then
-      width_str = width .. string.rep(" ", math.max(0, bit_width - #width))
-    else
-      width_str = string.rep(" ", bit_width)
-    end
-
-    return indent .. type_str .. width_str .. signal_name .. ";"
+  -- 简单格式
+  if width and width ~= "" then
+    return indent .. signal_type .. " " .. width .. " " .. signal_name .. ";"
   else
-    -- 不对齐，简单格式
-    if width and width ~= "" then
-      return indent .. signal_type .. " " .. width .. " " .. signal_name .. ";"
-    else
-      return indent .. signal_type .. " " .. signal_name .. ";"
-    end
+    return indent .. signal_type .. " " .. signal_name .. ";"
   end
 end
 

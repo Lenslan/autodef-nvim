@@ -5,12 +5,8 @@ local M = {}
 
 -- 默认配置
 M.defaults = {
-  -- 快捷键配置
-  keymaps = {
-    single = "<leader>sd", -- 单信号查询/添加
-    batch = "<leader>sb", -- 批量添加
-    align = "<leader>sa", -- 对齐信号定义
-  },
+  -- 快捷键配置（Normal和Visual模式使用相同快捷键）
+  keymap = "<leader>sd",
 
   -- 默认值
   default_type = "wire", -- 默认信号类型
@@ -23,13 +19,6 @@ M.defaults = {
   -- after_last_signal: 最后一个信号定义后
   -- grouped: 按类型分组插入
   insert_position = "after_port",
-
-  -- 对齐选项
-  align = {
-    enabled = true, -- 插入时自动对齐
-    type_width = 6, -- 类型列宽度（wire/reg/logic）
-    bit_width = 12, -- 位宽列宽度
-  },
 
   -- 缩进
   indent = "  ", -- 缩进字符（2空格）
@@ -80,7 +69,7 @@ function M.get()
 end
 
 --- 获取特定配置项
----@param key string 配置键名（支持点分隔，如 "align.enabled"）
+---@param key string 配置键名（支持点分隔）
 ---@return any 配置值
 function M.get_option(key)
   local config = M.get()
