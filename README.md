@@ -22,7 +22,25 @@ A Neovim plugin for Verilog/SystemVerilog signal definition management. Quickly 
   "your-username/autodef-nvim",
   ft = { "verilog", "systemverilog", "verilog_systemverilog" },
   opts = {
-    -- your configuration here
+    -- Keymap (same for Normal and Visual mode)
+    keymap = "<leader>sd",
+
+    -- Insert position strategy
+    -- Options: "after_port", "after_last_wire", "after_last_reg",
+    --          "after_last_signal", "grouped"
+    insert_position = "after_port",
+
+    -- Indentation
+    indent = "  ",
+
+    -- Ignore patterns for batch mode (Lua patterns)
+    ignore_patterns = {
+      -- "^clk",   -- Ignore signals starting with "clk"
+      -- "^rst",   -- Ignore signals starting with "rst"
+    },
+
+    -- Available signal types
+    signal_types = { "wire", "reg", "logic" },
   },
 }
 ```
