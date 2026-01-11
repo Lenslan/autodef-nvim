@@ -19,7 +19,7 @@ A Neovim plugin for Verilog/SystemVerilog signal definition management. Quickly 
 
 ```lua
 {
-  "your-username/autodef-nvim",
+  "Lenslan/autodef-nvim",
   ft = { "verilog", "systemverilog", "verilog_systemverilog" },
   opts = {
     -- Keymap (same for Normal and Visual mode)
