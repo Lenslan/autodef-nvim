@@ -187,8 +187,9 @@ local function setup_keymaps()
   -- Visual模式：批量添加
   if keymaps.batch then
     vim.keymap.set("v", keymaps.batch, function()
-      -- 先退出Visual模式以获取正确的选择范围
-      vim.cmd("normal! ")
+      -- 先退出Visual模式以获取正确的选择范围（'< 和 '> 标记）
+      local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+      vim.api.nvim_feedkeys(esc, "x", false)
       vim.schedule(function()
         M.batch_add_signals()
       end)
